@@ -5,6 +5,9 @@ import (
 	"net/http"
 
 	"github.com/edwardfernando/godiary/config"
+	"github.com/edwardfernando/godiary/entry/handler"
+	"github.com/edwardfernando/godiary/entry/repository"
+	"github.com/edwardfernando/godiary/entry/usecase"
 	"github.com/jinzhu/gorm"
 	"github.com/labstack/echo"
 	"github.com/sirupsen/logrus"
@@ -50,6 +53,12 @@ func (s *Server) StartEchoServer() {
 			logrus.Infof("%s shutting down the server", serverLabel)
 		}
 	}()
+
+	entryRepository := repository.NewEntryRepository(appDB)
+	entryUsecase := usecase.NewEntryUsecase(entryRepository)
+	entryHandler := handler.NewEntryHTTPHandler(entryUsecase)
+
+	echoServer.POST("/entries", entryHandler.PostEntry)
 
 	logrus.Infof("%s Server started", serverLabel)
 
